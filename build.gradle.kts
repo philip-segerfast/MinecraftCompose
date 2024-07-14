@@ -22,8 +22,10 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "2.0.0"
 }
 
-version = modVersion
-group = modGroupId
+allprojects {
+    version = modVersion
+    group = modGroupId
+}
 
 repositories {
     mavenLocal()
