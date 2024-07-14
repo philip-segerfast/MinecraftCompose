@@ -1,16 +1,26 @@
 package segerfast.mccompose
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.mojang.blaze3d.platform.InputConstants
 import segerfast.mccompose.block.ModBlocks
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.components.StringWidget
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.Component
+import net.neoforged.bus.api.Event
 import net.neoforged.bus.api.SubscribeEvent
 import net.neoforged.fml.common.EventBusSubscriber
 import net.neoforged.fml.common.Mod
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent
 import net.neoforged.fml.event.lifecycle.FMLDedicatedServerSetupEvent
+import net.neoforged.neoforge.client.event.InputEvent
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import thedarkcolour.kotlinforforge.neoforge.forge.FORGE_BUS
 import thedarkcolour.kotlinforforge.neoforge.forge.MOD_BUS
 import thedarkcolour.kotlinforforge.neoforge.forge.runForDist
 
@@ -28,7 +38,7 @@ object MinecraftCompose {
     val LOGGER: Logger = LogManager.getLogger(ID)
 
     init {
-        LOGGER.log(Level.INFO, "Hello world!")
+        LOGGER.log(Level.INFO, "MinecraftCompose #INIT")
 
         // Register the KDeferredRegister to the mod-specific event bus
         ModBlocks.REGISTRY.register(MOD_BUS)
@@ -36,6 +46,7 @@ object MinecraftCompose {
         val obj = runForDist(
             clientTarget = {
                 MOD_BUS.addListener(::onClientSetup)
+                FORGE_BUS.addListener(MinecraftCompose::composeEvent)
                 Minecraft.getInstance()
             },
             serverTarget = {
@@ -44,6 +55,33 @@ object MinecraftCompose {
             })
 
         println(obj)
+
+        val x: @Composable () -> Unit = {
+
+        }
+    }
+
+    private fun composeEvent(event: InputEvent.Key) {
+        println("Key: ${event.key}")
+        println("Action: ${event.action}")
+        if(event.key == InputConstants.KEY_C) {
+            setCompose()
+        }
+    }
+
+    private fun setCompose() {
+        val screen = MyOtherScreen()
+
+        Minecraft.getInstance().setScreen(screen)
+
+        println("About to set content...")
+        screen.setContent {
+            println("setContent!")
+
+            LaunchedEffect(Unit) {
+                println("Hello!")
+            }
+        }
     }
 
     /**
@@ -65,5 +103,16 @@ object MinecraftCompose {
     @SubscribeEvent
     fun onCommonSetup(event: FMLCommonSetupEvent) {
         LOGGER.log(Level.INFO, "Hello! This is working!")
+    }
+}
+
+class MyOtherScreen : Screen(Component.literal("Whatever")) {
+    override fun render(pGuiGraphics: GuiGraphics, pMouseX: Int, pMouseY: Int, pPartialTick: Float) {
+        super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick)
+        StringWidget(Component.literal("This is a String"), Minecraft.getInstance().font).render(pGuiGraphics, pMouseX, pMouseY, pPartialTick)
+    }
+
+    fun setContent(content: @Composable () -> Unit) {
+
     }
 }
