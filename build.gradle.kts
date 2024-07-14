@@ -1,26 +1,40 @@
+val modVersion: String by project
+val modGroupId: String by project
+val modId: String by project
+val modName: String by project
+val modLicense: String by project
+val modAuthors: String by project
+val neoVersion: String by project
+val modDescription: String by project
+val neoVersionRange: String by project
+val minecraftVersion: String by project
+val loaderVersionRange: String by project
+val minecraftVersionRange: String by project
+val parchmentMappingsVersion: String by project
+val parchmentMinecraftVersion: String by project
+
 plugins {
-    id 'java-library'
-    id 'eclipse'
-    id 'idea'
-    id 'maven-publish'
-    id 'net.neoforged.moddev' version '1.0.9'
-    id 'org.jetbrains.kotlin.jvm' version '2.0.0'
+    id("java-library")
+    id("eclipse")
+    id("idea")
+    id("maven-publish")
+    id("net.neoforged.moddev") version "1.0.9"
+    id("org.jetbrains.kotlin.jvm") version "2.0.0"
 }
 
-version = mod_version
-group = mod_group_id
+version = modVersion
+group = modGroupId
 
 repositories {
     mavenLocal()
-    maven {
-        name = 'Kotlin for Forge'
-        url = 'https://thedarkcolour.github.io/KotlinForForge/'
-        content { includeGroup "thedarkcolour" }
+    maven("https://thedarkcolour.github.io/KotlinForForge/") {
+        name = "Kotlin for Forge"
+        content { includeGroup("thedarkcolour") }
     }
 }
 
 base {
-    archivesName = mod_id
+    archivesName = modId
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -28,63 +42,51 @@ kotlin.jvmToolchain(21)
 
 neoForge {
     // Specify the version of NeoForge to use.
-    version = project.neo_version
+    version = neoVersion
 
     parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
+        mappingsVersion = parchmentMappingsVersion
+        minecraftVersion = parchmentMinecraftVersion
     }
 
     // This line is optional. Access Transformers are automatically detected
-    // accessTransformers.add('src/main/resources/META-INF/accesstransformer.cfg')
+    // accessTransformers.add("src/main/resources/META-INF/accesstransformer.cfg")
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
-        client {
-            client()
+//        client {
+//            client()
+//
+//            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+//            systemProperty("neoforge.enabledGameTestNamespaces", project.mod_id)
+//        }
+//
+//        // This run config launches GameTestServer and runs all registered gametests, then exits.
+//        // By default, the server will crash when no gametests are provided.
+//        // The gametest system is also enabled by default for other run configs under the /test command.
+//        gameTestServer {
+//            type = "gameTestServer"
+//            id("neoforge.enabledGameTestNamespaces", project.mod_id)
+//        }
 
-            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        server {
-            server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        // This run config launches GameTestServer and runs all registered gametests, then exits.
-        // By default, the server will crash when no gametests are provided.
-        // The gametest system is also enabled by default for other run configs under the /test command.
-        gameTestServer {
-            type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        data {
-            data()
-
-            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-            // gameDirectory = project.file('run-data')
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-        }
-
-        // applies to all the run configs above
         configureEach {
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
             // "SCAN": For mods scan.
             // "REGISTRIES": For firing of registry events.
             // "REGISTRYDUMP": For getting the contents of all registries.
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty("forge.logging.markers", "REGISTRIES")
 
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            logLevel = org.slf4j.event.Level.DEBUG
+            systemProperty("forge.logging.console.level", "debug")
+
+            // TODO - check
+//            modSource(project.sourceSets.main.get())
+
+            programArguments.addAll(listOf("--mod", modId, "--all", "--output", file("src/generated/resources/").absolutePath, "--existing", file("src/main/resources/").absolutePath))
         }
     }
 
@@ -93,18 +95,18 @@ neoForge {
         // these are used to tell the game which sources are for which mod
         // mostly optional in a single mod project
         // but multi mod projects should define one per mod
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
+//        "${modId}" {
+//            sourceSet(sourceSets.main)
+//        }
     }
 }
 
 // Include resources generated by data generators.
-sourceSets.main.resources { srcDir 'src/generated/resources' }
+sourceSets.main.get().resources { srcDir("src/generated/resources") }
 
 
 dependencies {
-    implementation 'thedarkcolour:kotlinforforge-neoforge:5.3.0'
+    implementation("thedarkcolour:kotlinforforge-neoforge:5.3.0")
 
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
@@ -132,45 +134,31 @@ dependencies {
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
 // When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
 // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
-tasks.withType(ProcessResources).configureEach {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            neo_version_range      : neo_version_range,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            mod_authors            : mod_authors,
-            mod_description        : mod_description
-    ]
-    inputs.properties replaceProperties
+tasks.withType<ProcessResources>().configureEach {
+    val replaceProperties = mapOf(
+        "minecraft_version" to minecraftVersion,
+        "minecraft_version_range" to minecraftVersionRange,
+        "neo_version" to neoVersion,
+        "neo_version_range" to neoVersionRange,
+        "loader_version_range" to loaderVersionRange,
+        "mod_id" to modId,
+        "mod_name" to modName,
+        "mod_license" to modLicense,
+        "mod_version" to modVersion,
+        "mod_authors" to modAuthors,
+        "mod_description" to modDescription
+    )
+    inputs.properties(replaceProperties)
 
-    filesMatching(['META-INF/neoforge.mods.toml']) {
-        expand replaceProperties
-    }
-}
-
-// Example configuration to allow publishing using the maven-publish plugin
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        maven {
-            url "file://${project.projectDir}/repo"
-        }
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand(replaceProperties)
     }
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
 idea {
     module {
-        downloadSources = true
-        downloadJavadoc = true
+        isDownloadSources = true
+        isDownloadJavadoc = true
     }
 }
