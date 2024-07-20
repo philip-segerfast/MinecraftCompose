@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
-    alias(libs.plugins.neogradle)
     idea
+    id("com.matyrobbrt.jarinjar") version "1.1.+"
 }
 
 kotlin {
@@ -9,7 +9,7 @@ kotlin {
 }
 
 repositories {
-//    mavenCentral()
+    mavenCentral()
     google() // Compose repo
 }
 
