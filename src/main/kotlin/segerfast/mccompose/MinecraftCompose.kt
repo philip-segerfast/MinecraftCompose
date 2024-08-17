@@ -1,17 +1,14 @@
 package segerfast.mccompose
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import com.mojang.blaze3d.platform.InputConstants
-import segerfast.mccompose.block.ModBlocks
+import kotlinx.coroutines.delay
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.StringWidget
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
-import net.neoforged.bus.api.Event
 import net.neoforged.bus.api.SubscribeEvent
-import net.neoforged.fml.common.EventBusSubscriber
 import net.neoforged.fml.common.Mod
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent
@@ -20,9 +17,11 @@ import net.neoforged.neoforge.client.event.InputEvent
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import segerfast.mccompose.screen.ComposeScreen
 import thedarkcolour.kotlinforforge.neoforge.forge.FORGE_BUS
 import thedarkcolour.kotlinforforge.neoforge.forge.MOD_BUS
 import thedarkcolour.kotlinforforge.neoforge.forge.runForDist
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Main mod class.
@@ -30,7 +29,6 @@ import thedarkcolour.kotlinforforge.neoforge.forge.runForDist
  * An example for blocks is in the `blocks` package of this mod.
  */
 @Mod(MinecraftCompose.ID)
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
 object MinecraftCompose {
     const val ID = "mccompose"
 
@@ -39,9 +37,6 @@ object MinecraftCompose {
 
     init {
         LOGGER.log(Level.INFO, "MinecraftCompose #INIT")
-
-        // Register the KDeferredRegister to the mod-specific event bus
-        ModBlocks.REGISTRY.register(MOD_BUS)
 
         val obj = runForDist(
             clientTarget = {
@@ -64,22 +59,33 @@ object MinecraftCompose {
     private fun composeEvent(event: InputEvent.Key) {
         println("Key: ${event.key}")
         println("Action: ${event.action}")
-        if(event.key == InputConstants.KEY_C) {
+        if(event.key == InputConstants.KEY_C && event.action == InputConstants.PRESS) {
             setCompose()
         }
     }
 
     private fun setCompose() {
-        val screen = MyOtherScreen()
+        println("Creating screen...")
+        val screen = ComposeScreen(Component.literal("Title"))
 
+        println("Setting screen...")
         Minecraft.getInstance().setScreen(screen)
 
-        println("About to set content...")
+        println("Setting contents...")
         screen.setContent {
             println("setContent!")
 
+            var num by remember { mutableIntStateOf(0) }
+
+            LaunchedEffect(num) {
+                println("LaunchedEffect on num: $num")
+            }
+
             LaunchedEffect(Unit) {
-                println("Hello!")
+                while(true) {
+                    delay(1.seconds)
+                    num++
+                }
             }
         }
     }
