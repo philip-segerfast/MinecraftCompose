@@ -22,9 +22,9 @@ plugins {
     id("idea")
     id("maven-publish")
     id("org.jetbrains.kotlin.jvm") version "2.0.0"
-
-    id("net.neoforged.moddev") version "1.0.11"
-
+    // Minecraft modding plugin
+    id("net.neoforged.moddev") version "1.0.17"
+    // Compose
     alias(libs.plugins.jetbrainsCompose)
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 }
@@ -36,11 +36,10 @@ allprojects {
 
 repositories {
     mavenLocal()
+    google()
     maven("https://thedarkcolour.github.io/KotlinForForge/") {
-        name = "Kotlin for Forge"
         content { includeGroup("thedarkcolour") }
     }
-    google()
 }
 
 base {
@@ -79,11 +78,9 @@ neoForge {
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            systemProperty("forge.logging.console.level", "debug")
+            logLevel = org.slf4j.event.Level.DEBUG
 
             programArguments.addAll(listOf("--mod", modId, "--all", "--output", file("src/generated/resources/").absolutePath, "--existing", file("src/main/resources/").absolutePath))
-
-            logLevel = org.slf4j.event.Level.INFO
         }
 
         create("client") {
@@ -172,19 +169,7 @@ tasks.withType<ProcessResources>().configureEach {
 }
 
 tasks.withType<Jar> {
-//    manifest.attributes("FMLModType" to "GAMELIBRARY")
-
-    from(
-        jarred.map { if (it.isDirectory) it else zipTree(it) }
-    )
-
-//    from(
-//        configurations
-//            .compileClasspath
-//            .get()
-//            .map { if (it.isDirectory) it else zipTree(it) }
-//    )
-
+    from(jarred.map { if (it.isDirectory) it else zipTree(it) })
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -194,4 +179,13 @@ idea {
         isDownloadSources = true
         isDownloadJavadoc = true
     }
+}
+
+tasks.named<Wrapper>("wrapper").configure {
+    // Define wrapper values here to not have to always do so when updating gradlew.properties.
+    // Switching this to Wrapper.DistributionType.ALL will download the full gradle sources that comes with
+    // documentation attached on cursor hover of gradle classes and methods. However, this comes with increased
+    // file size for Gradle. If you do switch this to ALL, run the Gradle wrapper task twice afterwards.
+    // (Verify by checking gradle/wrapper/gradle-wrapper.properties to see if distributionUrl now points to `-all`)
+    distributionType = Wrapper.DistributionType.ALL
 }
