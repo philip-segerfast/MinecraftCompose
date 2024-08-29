@@ -2,7 +2,6 @@ package segerfast.mccompose
 
 import androidx.compose.runtime.*
 import com.mojang.blaze3d.platform.InputConstants
-import kotlinx.coroutines.delay
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.StringWidget
@@ -18,10 +17,10 @@ import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import segerfast.mccompose.screen.ComposeScreen
+import segerfast.mccompose.screen.node.Text
 import thedarkcolour.kotlinforforge.neoforge.forge.FORGE_BUS
 import thedarkcolour.kotlinforforge.neoforge.forge.MOD_BUS
 import thedarkcolour.kotlinforforge.neoforge.forge.runForDist
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Main mod class.
@@ -56,38 +55,32 @@ object MinecraftCompose {
         }
     }
 
+    private var numState by mutableIntStateOf(0)
+
     private fun composeEvent(event: InputEvent.Key) {
-        println("Key: ${event.key}")
-        println("Action: ${event.action}")
-        if(event.key == InputConstants.KEY_C && event.action == InputConstants.PRESS) {
-            setCompose()
+        if(event.action != InputConstants.PRESS) return
+
+        when(event.key) {
+            InputConstants.KEY_C -> setCompose()
+            InputConstants.KEY_UP -> {
+                numState++
+            }
+            InputConstants.KEY_DOWN -> {
+                numState--
+            }
         }
     }
 
     private fun setCompose() {
         println("Creating screen...")
-        val screen = ComposeScreen(Component.literal("Title"))
+        val screen = ComposeScreen(Component.literal("Title")) {
+
+            Text("Number is: $numState")
+
+        }
 
         println("Setting screen...")
         Minecraft.getInstance().setScreen(screen)
-
-        println("Setting contents...")
-        screen.setContent {
-            println("setContent!")
-
-            var num by remember { mutableIntStateOf(0) }
-
-            LaunchedEffect(num) {
-                println("LaunchedEffect on num: $num")
-            }
-
-            LaunchedEffect(Unit) {
-                while(true) {
-                    delay(1.seconds)
-                    num++
-                }
-            }
-        }
     }
 
     /**
